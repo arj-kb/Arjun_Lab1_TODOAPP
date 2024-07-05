@@ -1,43 +1,49 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { collection, addDoc } from 'firebase/firestore';
+import { db } from './firebaseconfig';
 
 export interface Task {
   id: string;
   title: string;
-  status: boolean; 
+  status: boolean;
 }
 
 interface Props {
-  setTaskList: React.Dispatch<React.SetStateAction<Task[]>>;
   taskList: Task[];
+  setTaskList: React.Dispatch<React.SetStateAction<Task[]>>;
 }
 
 const AddTask: React.FC<Props> = ({ taskList, setTaskList }) => {
   const [title, setTitle] = useState('');
 
-  const addTask = () => {
+  const addTask = async () => {
     if (title.trim() === '') return;
-    const newTask: Task = {
-      id: Math.random().toString(),
+    const newTask: Omit<Task, 'id'> = {
       title,
       status: false,
     };
-    setTaskList([...taskList, newTask]);
-    setTitle('');
+    try {
+      const docRef = await addDoc(collection(db, 'tasks'), newTask);
+      setTaskList([...taskList, { id: docRef.id, ...newTask }]);
+      setTitle('');
+    } catch (e) {
+      console.error('Error adding document: ', e);
+    }
   };
 
   return (
-    <View style={styles.container}>
+    <View>
       <Text style={styles.heading}>Add Task</Text>
-      <View style={styles.inputContainer}>
-        <TextInput 
+      <View>
+        <TextInput
           style={styles.textInput}
           placeholder='Enter Task Title'
           value={title}
-          onChangeText={setTitle} 
+          onChangeText={setTitle}
         />
-        <TouchableOpacity 
-          style={styles.addButton} 
+        <TouchableOpacity
+          style={styles.addButton}
           onPress={addTask}
           disabled={title.trim() === ''}
         >
@@ -49,33 +55,29 @@ const AddTask: React.FC<Props> = ({ taskList, setTaskList }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   heading: {
     fontSize: 20,
-    color: 'black',
+    color: '#560401',
+    textAlign: 'center',
     fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  inputContainer: {
-    alignItems: 'center',
+    margin: 20,
   },
   textInput: {
-    width: 300,
     padding: 10,
-    borderColor: 'gray',
-    borderWidth: 1,
+    borderColor: '#1A5276',
+    borderWidth: 2,
     borderRadius: 5,
-    marginBottom: 10,
+    margin: 10,
+    width: 300,
   },
   addButton: {
-    backgroundColor: '#2991DB',
+    backgroundColor: '#1A5276',
     borderRadius: 5,
-    padding: 8,
+    padding: 10,
     alignItems: 'center',
+    width: 100,
+    textAlign: 'center',
+    alignSelf: 'center', // Center the button
   },
   buttonText: {
     color: '#FFF',

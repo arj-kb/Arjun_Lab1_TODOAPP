@@ -1,6 +1,8 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View, Switch } from 'react-native';
+import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { Task } from './AddItem';
+import { db } from './firebaseconfig';
 
 interface Props {
   task: Task;
@@ -9,7 +11,9 @@ interface Props {
 }
 
 const TaskItem: React.FC<Props> = ({ task, taskList, setTaskList }) => {
-  const toggleStatus = () => {
+  const toggleStatus = async () => {
+    const taskRef = doc(db, 'tasks', task.id);
+    await updateDoc(taskRef, { status: !task.status });
     setTaskList(
       taskList.map(t =>
         t.id === task.id ? { ...t, status: !t.status } : t
@@ -17,7 +21,9 @@ const TaskItem: React.FC<Props> = ({ task, taskList, setTaskList }) => {
     );
   };
 
-  const deleteTask = () => {
+  const deleteTask = async () => {
+    const taskRef = doc(db, 'tasks', task.id);
+    await deleteDoc(taskRef);
     setTaskList(taskList.filter(t => t.id !== task.id));
   };
 
@@ -51,39 +57,39 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
-    width: '100%'
+    width: '100%',
   },
   taskInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1
+    flex: 1,
   },
   taskTitle: {
     fontSize: 18,
-    marginRight: 10
+    marginRight: 10,
   },
   taskStatus: {
-    fontSize: 14
+    fontSize: 14,
   },
   taskDue: {
-    color: 'red'
+    color: 'red',
   },
   taskDone: {
-    color: 'green'
+    color: 'green',
   },
   actions: {
     flexDirection: 'row',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   deleteButton: {
     marginLeft: 10,
-    backgroundColor: 'red',
+    backgroundColor: '#ff6347',
     paddingVertical: 5,
     paddingHorizontal: 10,
-    borderRadius: 5
+    borderRadius: 5,
   },
   deleteButtonText: {
-    color: 'white'
+    color: '#FFF',
   },
 });
 
